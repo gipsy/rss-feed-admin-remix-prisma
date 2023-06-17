@@ -10,6 +10,27 @@ if (!sessionSecret) {
   throw new Error('SESSION_SECRET must be set')
 }
 
+export async function requireUserId(request: Request, redirectTo: string = new URL(request.url).pathname) {
+  const session = await getUserSession(request)
+  const userId = session.get('userId')
+  if (!userId || typeof userId !== 'string') {
+    const searchParams = new URLSearchParams([['redirectTo', redirectTo]])
+    throw redirect(`/login?${searchParams}`)
+  }
+  return userId
+}
+
+function getUserSession(request: Request) {
+  return storage.getSession(request.headers.get('Cookie'))
+}
+
+async function getUserId(request: Request) {
+  const session = await getUserSession(request)
+  const userId = session.get('userId')
+  if (!userId || typeof userId !== 'string') return null
+  return userId
+}
+
 const storage = createCookieSessionStorage({
   cookie: {
     name: 'rss-session',
@@ -21,6 +42,23 @@ const storage = createCookieSessionStorage({
     httpOnly: true,
   },
 })
+
+export async function getUser(request: Request) {
+  const userId = await getUserId(request)
+  if (typeof userId !== 'string') {
+    return null
+  }
+  
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, profile: true },
+    })
+    return user
+  } catch {
+    throw logout(request)
+  }
+}
 
 export async function createUserSession(userId: string, redirectTo: string) {
   const session = await storage.getSession()
@@ -44,6 +82,7 @@ export async function login({ email, password }: LoginForm) {
 }
 
 export async function register(user: RegisterForm) {
+  console.log('register',user);
   const exists = await prisma.user.count({ where: { email: user.email } })
   if (exists) {
     return json({ error: `User already exists with that email` }, { status: 400 })
@@ -61,6 +100,15 @@ export async function register(user: RegisterForm) {
   }
   
   return createUserSession(newUser.id, '/');
+}
+
+export async function logout(request: Request) {
+  const session = await getUserSession(request)
+  return redirect('/login', {
+    headers: {
+      'Set-Cookie': await storage.destroySession(session),
+    },
+  })
 }
 
 

@@ -1,14 +1,26 @@
 import {
   ActionFunction,
-  json }                   from '@remix-run/node';
+  LoaderFunction,
+  json,
+  redirect
+}                          from '@remix-run/node';
 import {
   validateEmail,
   validateName,
   validatePassword }       from '~/utils/validators.server';
-import { login, register } from '~/utils/auth.server';
+import {
+  login,
+  register,
+  getUser
+}                          from '~/utils/auth.server';
 import { Layout }          from '~/components/layout';
 import { FormField }       from "~/components/form-field";
 import { useState }        from "react";
+
+export const loader: LoaderFunction = async ({ request }) => {
+  // If there's already a user in the session, redirect to the home page
+  return (await getUser(request)) ? redirect('/') : null
+}
 
 export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData()
@@ -26,6 +38,8 @@ export const action: ActionFunction = async ({ request }) => {
     return json({ error: `Invalid Form Data`, form: action }, { status: 400 })
   }
   
+  console.log('action', action)
+  
   const errors = {
     email: validateEmail(email),
     password: validatePassword(password),
@@ -37,6 +51,8 @@ export const action: ActionFunction = async ({ request }) => {
         : {}),
   }
   
+  console.log('errors',errors)
+  
   if (Object.values(errors).some(Boolean))
     return json(
       { errors, fields: { email, password, firstName, lastName }, form: action },
@@ -44,9 +60,11 @@ export const action: ActionFunction = async ({ request }) => {
   
   switch (action) {
     case 'login': {
+      console.log('case login');
       return await login({ email, password })
     }
     case 'register': {
+      console.log('case register');
       firstName = firstName as string
       lastName = lastName as string
       return await register({ email, password, firstName, lastName })
