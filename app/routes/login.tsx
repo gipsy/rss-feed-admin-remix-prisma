@@ -16,6 +16,9 @@ import {
 import { Layout }          from '~/components/layout';
 import { FormField }       from "~/components/form-field";
 import { useState }        from "react";
+import { useActionData }   from '@remix-run/react';
+import {
+  useRef, useEffect }      from 'react';
 
 export const loader: LoaderFunction = async ({ request }) => {
   // If there's already a user in the session, redirect to the home page
@@ -38,8 +41,6 @@ export const action: ActionFunction = async ({ request }) => {
     return json({ error: `Invalid Form Data`, form: action }, { status: 400 })
   }
   
-  console.log('action', action)
-  
   const errors = {
     email: validateEmail(email),
     password: validatePassword(password),
@@ -51,8 +52,6 @@ export const action: ActionFunction = async ({ request }) => {
         : {}),
   }
   
-  console.log('errors',errors)
-  
   if (Object.values(errors).some(Boolean))
     return json(
       { errors, fields: { email, password, firstName, lastName }, form: action },
@@ -60,28 +59,58 @@ export const action: ActionFunction = async ({ request }) => {
   
   switch (action) {
     case 'login': {
-      console.log('case login');
       return await login({ email, password })
     }
     case 'register': {
-      console.log('case register');
       firstName = firstName as string
       lastName = lastName as string
       return await register({ email, password, firstName, lastName })
     }
     default:
-      return json({ error: `Invalid Form Data` }, { status: 400 });
+      return json({ error: `Invalid Form Data` }, { status: 400 })
   }
 }
 
 export default function Login() {
+  const actionData = useActionData()
+  
+  const firstLoad = useRef(true)
+  const [errors, setErrors] = useState(actionData?.errors || {})
+  const [formError, setFormError] = useState(actionData?.error || '')
+  
   const [action, setAction] = useState('login')
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
+    email: actionData?.fields?.email || '',
+    password: actionData?.fields?.password || '',
+    firstName: actionData?.fields?.lastName || '',
+    lastName: actionData?.fields?.firstName || '',
   })
+  
+  useEffect(() => {
+    if (!firstLoad.current) {
+      const newState = {
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+      }
+      setErrors(newState)
+      setFormError('')
+      setFormData(newState)
+    }
+  }, [action])
+  
+  useEffect(() => {
+    if (!firstLoad.current) {
+      setFormError('')
+    }
+  }, [formData])
+  
+  useEffect(() => { firstLoad.current = false }, [])
+  
+  //useEffect(() => {
+  //  setErrorText(error)
+  //}, [error])
   
   // Updates the form data when an input changes
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -103,11 +132,13 @@ export default function Login() {
         </p>
         
         <form method="post" className="rounded-2xl bg-gray-200 p-6 w-96">
+          <div className="text-xs font-semibold text-center tracking-wide text-red-500 w-full">{formError}</div>
           <FormField
             htmlFor="email"
             label="Email"
             value={formData.email}
             onChange={e => handleInputChange(e, 'email')}
+            error={errors?.email}
           />
           <FormField
             htmlFor="password"
@@ -115,6 +146,7 @@ export default function Login() {
             label="Password"
             value={formData.password}
             onChange={e => handleInputChange(e, 'password')}
+            error={errors?.password}
           />
           {action === 'register' && (
             <>
@@ -123,12 +155,14 @@ export default function Login() {
                 label="First Name"
                 onChange={e => handleInputChange(e, 'firstName')}
                 value={formData.firstName}
+                error={errors?.firstName}
               />
               <FormField
                 htmlFor="lastName"
                 label="Last Name"
                 onChange={e => handleInputChange(e, 'lastName')}
                 value={formData.lastName}
+                error={errors?.lastName}
               />
             </>
           )}
