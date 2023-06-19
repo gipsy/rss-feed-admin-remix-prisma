@@ -42,3 +42,11 @@ export const getPosts = async (userId: string) => {
     console.log('No feeds available', error)
   }
 };
+
+export const getPostById = async (postId: string) => {
+  return await prisma.post.findUnique({
+    where: {
+      id: postId,
+    },
+  })
+}
