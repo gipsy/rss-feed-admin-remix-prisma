@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  //previewFeatures = ["createMany"]
 }
 
 datasource db {
@@ -17,9 +18,29 @@ model User {
   email     String   @unique
   password  String
   profile   Profile
+//  posts     Post[]
 }
 
 type Profile {
   firstName String
   lastName  String
+}
+
+model Post {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+//  createdAt      DateTime  @default(now())
+//  updatedAt      DateTime  @updatedAt
+  title          String
+//  published      Boolean   @default(false)
+//  content        String
+//  contentSnippet String
+//  creator        String
+//  dc:creator     String
+//  categories     Array
+//  isoDate        String
+//  pubDate        String
+//  link           String
+  guid           String
+//  author         User       @relation(fields: [authorId], references: [id])
+//  authorId       String     @db.ObjectId
 }

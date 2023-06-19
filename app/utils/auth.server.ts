@@ -78,11 +78,10 @@ export async function login({ email, password }: LoginForm) {
   if (!user || !(await bcrypt.compare(password, user.password)))
     return json({ error: `Incorrect login` }, { status: 400 })
   
-  return createUserSession(newUser.id, '/');
+  return createUserSession(user.id, '/');
 }
 
 export async function register(user: RegisterForm) {
-  console.log('register',user);
   const exists = await prisma.user.count({ where: { email: user.email } })
   if (exists) {
     return json({ error: `User already exists with that email` }, { status: 400 })
