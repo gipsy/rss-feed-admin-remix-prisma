@@ -41,7 +41,6 @@ export default function PostModal() {
     content: post.content || actionData?.fields?.content || '',
     //creator: post.creator || actionData?.fields?.creator || '',
   })
-  const [modalIsOpen, setModalIsOpen] = useState(true)
   
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, field: string) => {
     setFormData(form => ({...form, [field]: event.target.value}))
@@ -51,28 +50,10 @@ export default function PostModal() {
     setFormData(form => ({ ...form, [field]: event }))
   }
   
-  const hideModal = () => {
-    setModalIsOpen(false)
-  }
-  
   return (
-    <Modal isOpen={ modalIsOpen } className="w-2/3 p-10">
+    <Modal isOpen={ true } className="w-2/3 p-10">
       <div className="text-xs font-semibold text-center tracking-wide text-red-500 w-full mb-2">{ formError }</div>
       <h3 className="mb-4 text-xl font-medium text-gray-900 dark:text-white">Edit selected post</h3>
-      <button
-        type="button"
-        className="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white"
-        data-modal-hide="authentication-modal"
-        onClick={ hideModal }
-      >
-        <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-             xmlns="http://www.w3.org/2000/svg">
-          <path fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"></path>
-        </svg>
-        <span className="sr-only">Close modal</span>
-      </button>
       <form method="post" className="space-y-6">
         <input type="hidden" name="id" value={formData.id} />
         <input type="hidden" name="content" value={formData.content} />

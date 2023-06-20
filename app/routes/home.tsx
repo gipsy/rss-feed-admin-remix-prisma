@@ -2,9 +2,11 @@ import {
   ActionFunction, LoaderFunction,
   json, redirect }                           from '@remix-run/node'
 import { requireUserId }                     from "~/utils/auth.server"
-import { createPost, createPosts, getPosts } from '~/utils/post.server'
+import { createPost, createPosts,
+  getAllPosts, getFilteredPosts }            from '~/utils/post.server'
 import { Layout }                            from '~/components/layout'
 import { FeedPanel }                         from '~/components/feed-panel'
+import { SearchBar }                         from '~/components/search-bar'
 import { useEffect, useState }               from "react"
 import { useLoaderData }                     from "react-router"
 import { Outlet, useFetcher }                from "@remix-run/react"
@@ -26,8 +28,38 @@ type LoaderData = {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await requireUserId(request)
-  const posts = await getPosts(userId)
-  return !!posts.length ? json(posts) : await createPosts(userId, rssUrl) && redirect('/')
+  
+  const url = new URL(request.url)
+  const filter = url.searchParams.get('filter')
+  
+  let textFilter = {}
+  if (filter) {
+    textFilter = {
+      OR: [
+        {
+          title: {
+            mode: 'insensitive',
+            contains: filter
+          }
+        },
+        {
+          creator: {
+            mode: 'insensitive',
+            contains: filter
+          }
+        }
+      ]
+    }
+  }
+  
+  const data = {
+    allPosts: await getAllPosts(userId),
+    filteredPosts: await getFilteredPosts(userId, textFilter)
+  }
+  if (data.allPosts.length > 0) {
+    return data.filteredPosts ? json(data) : null
+  }
+  return await createPosts(userId, rssUrl) && redirect('/')
 }
 
 export const action: ActionFunction = async ({ request }) => {
@@ -40,7 +72,7 @@ export const action: ActionFunction = async ({ request }) => {
 export default function Home() {
   const fetcher = useFetcher()
   const [rssData, setRssData] = useState({})
-  const posts = useLoaderData<LoaderData | undefined>()
+  const { allPosts, filteredPosts } = useLoaderData<LoaderData | undefined>()
   
   usePollingEffect(
     async () => setRssData(
@@ -54,8 +86,8 @@ export default function Home() {
   )
   
   useEffect(() => {
-    if (rssData.items !== undefined && posts?.length > 0) {
-      const postGuids = posts.map(post => post.guid)
+    if (rssData.items !== undefined && allPosts?.length > 0) {
+      const postGuids = allPosts.map(post => post.guid)
       
       const newPost = rssData.items.filter(item => postGuids.indexOf(item.guid) == -1)
       
@@ -81,8 +113,11 @@ export default function Home() {
   return (
     <Layout>
       <Outlet />
+      <div className="container mx-auto">
+        <SearchBar />
+      </div>
       <div className="h-full flex">
-        <FeedPanel posts={posts} />
+        <FeedPanel posts={filteredPosts} />
       </div>
     </Layout>
   )

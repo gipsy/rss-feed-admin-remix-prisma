@@ -10,15 +10,18 @@ export function FeedPanel({ posts }: { posts: Post[] }) {
       </div>
       <div className="flex-1 overflow-y-scroll py-4 flex flex-col gap-y-5">
         <div className="container mx-auto">
-          { posts.map(post => (
-            <button
-              className="w-full mb-3 bg-white hover:bg-sky-500 cursor cursor:pointer"
-              key={post.id}
-              onClick={() => navigate(`posts/${post.id}`)}
-            >
-              {post.title}
-            </button>
-          )) }
+          <ul>
+            { posts.map(post => (
+              <li
+                key={post.id}
+                className="w-full mb-3 bg-white hover:bg-sky-500 px-5 py-2 cursor cursor:pointer"
+                onClick={() => navigate(`posts/${post.id}`)}
+              >
+                <p>Title: {post.title}</p>
+                <p>Creator: {post.creator}</p>
+              </li>
+            )) }
+          </ul>
         </div>
       </div>
       <div className="text-center p-6 bg-gray-300">

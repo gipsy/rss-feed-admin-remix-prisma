@@ -1,6 +1,7 @@
 import { prisma } from "./prisma.server"
 import { Post }   from "~/utils/types.server";
 import Parser     from 'rss-parser'
+import { Prisma } from "@prisma/client/scripts/default-index";
 
 export const createPosts = async (userId: string, rssUrl: string) => {
   const parser = new Parser({
@@ -45,7 +46,6 @@ export const createPost = async (post: Post) => {
 
 export const updatePost = async (post) => {
   try {
-    console.log('link',post.link)
     return await prisma.post.update({
       where: {
         id: post.id
@@ -62,12 +62,43 @@ export const updatePost = async (post) => {
   }
 }
 
-export const getPosts = async (userId: string) => {
+export const getAllPosts = async (userId: string) => {
   try {
     return await prisma.post.findMany()
   } catch (err) {
     console.log('No feeds available: ', err)
     return null
+  }
+};
+
+export const getFilteredPosts = async (
+  userId: string,
+  //whereFilter: Prisma.PostWhereInput
+  whereFilter
+) => {
+  try {
+    return await prisma.post.findMany({
+      select: {
+        id: true,
+        title: true,
+        creator: true,
+        content: true,
+        guid: true,
+        createdAt: true,
+        link: true,
+        //author: {
+        //  select: {
+        //    profile: true,
+        //  },
+        //},
+      },
+      where: {
+        ...whereFilter,
+      },
+    });
+  } catch (err) {
+    console.log('Can not get filtered posts: ', err)
+    return null;
   }
 };
 
@@ -80,5 +111,6 @@ export const getPostById = async (postId: string) => {
     })
   } catch (err) {
     console.log('Can not get post by id: ', err)
+    return null;
   }
 }
