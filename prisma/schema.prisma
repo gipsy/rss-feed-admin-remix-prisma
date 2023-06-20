@@ -28,18 +28,18 @@ type Profile {
 
 model Post {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
-//  createdAt      DateTime  @default(now())
-//  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   title          String
 //  published      Boolean   @default(false)
-//  content        String
-//  contentSnippet String
-//  creator        String
+  content        String
+  contentSnippet String
+  creator        String
 //  dc:creator     String
 //  categories     Array
-//  isoDate        String
+  isoDate        String
 //  pubDate        String
-//  link           String
+  link           String
   guid           String
 //  author         User       @relation(fields: [authorId], references: [id])
 //  authorId       String     @db.ObjectId

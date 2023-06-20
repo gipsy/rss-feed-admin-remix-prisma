@@ -7,8 +7,7 @@ import { Layout }                            from '~/components/layout'
 import { FeedPanel }                         from '~/components/feed-panel'
 import { useEffect, useState }               from "react"
 import { useLoaderData }                     from "react-router"
-import { Outlet, useActionData, useFetcher } from "@remix-run/react"
-import { FormField }                         from "~/components/form-field"
+import { Outlet, useFetcher }                from "@remix-run/react"
 import usePollingEffect                      from "~/hooks/use-polling-effect"
 import { Post }                              from "~/utils/types/post.server"
 import Parser                                from 'rss-parser'
@@ -40,12 +39,8 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function Home() {
   const fetcher = useFetcher()
-  const actionData = useActionData()
   const [rssData, setRssData] = useState({})
   const posts = useLoaderData<LoaderData | undefined>()
-  const [formData, setFormData] = useState({
-    title: actionData?.fields?.title || '',
-  })
   
   usePollingEffect(
     async () => setRssData(
@@ -60,7 +55,6 @@ export default function Home() {
   
   useEffect(() => {
     if (rssData.items !== undefined && posts?.length > 0) {
-      console.log('poll')
       const postGuids = posts.map(post => post.guid)
       
       const newPost = rssData.items.filter(item => postGuids.indexOf(item.guid) == -1)
@@ -68,8 +62,15 @@ export default function Home() {
       if (newPost.length > 0) {
         newPost.forEach(post => {
           fetcher.submit({
-            title: post.title,
-            guid: post.guid
+            //createdAt:      post.createdAt,
+            //updatedAt:      post.updatedAt,
+            title:          post.title,
+            content:        post.content,
+            contentSnippet: post.contentSnippet,
+            creator:        post.creator,
+            isoDate:        post.isoDate,
+            link:           post.link,
+            guid:           post.guid
           },
           {method: 'post'})
         })
@@ -82,13 +83,6 @@ export default function Home() {
       <Outlet />
       <div className="h-full flex">
         <FeedPanel posts={posts} />
-        {/*<form method="post" className="rounded-2xl bg-gray-200 p-6 w-96">*/}
-        {/*  <FormField*/}
-        {/*    htmlFor="title"*/}
-        {/*    label="Title"*/}
-        {/*    value={formData.title}*/}
-        {/*  />*/}
-        {/*</form>*/}
       </div>
     </Layout>
   )

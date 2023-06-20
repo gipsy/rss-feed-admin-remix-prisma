@@ -11,8 +11,15 @@ export const createPosts = async (userId: string, rssUrl: string) => {
     const feed = await parser.parseURL(rssUrl)
     const posts = feed.items.map((item) => {
       return {
-        title: item.title,
-        guid: item.guid
+        createdAt:      item.createdAt,
+        updatedAt:      item.updatedAt,
+        title:          item.title,
+        content:        item.content,
+        contentSnippet: item.contentSnippet,
+        creator:        item.creator,
+        isoDate:        item.isoDate,
+        link:           item.link,
+        guid:           item.guid
       }
     })
     const result = await prisma.post.createMany({
@@ -20,7 +27,7 @@ export const createPosts = async (userId: string, rssUrl: string) => {
     })
     return result
   } catch(err) {
-    console.log(err)
+    console.log('Can not create feed: ', err)
     return null
   }
 };
@@ -31,22 +38,47 @@ export const createPost = async (post: Post) => {
       data: post
     })
   } catch(err) {
-    console.log(err)
+    console.log('Can not create post: ', err)
+    return null
+  }
+}
+
+export const updatePost = async (post) => {
+  try {
+    console.log('link',post.link)
+    return await prisma.post.update({
+      where: {
+        id: post.id
+      },
+      data: {
+        link: post.link,
+        title: post.title,
+        content: post.content
+      }
+    })
+  } catch(err) {
+    console.log('Can not update post: ', err)
+    return null
   }
 }
 
 export const getPosts = async (userId: string) => {
   try {
     return await prisma.post.findMany()
-  } catch (error) {
-    console.log('No feeds available', error)
+  } catch (err) {
+    console.log('No feeds available: ', err)
+    return null
   }
 };
 
 export const getPostById = async (postId: string) => {
-  return await prisma.post.findUnique({
-    where: {
-      id: postId,
-    },
-  })
+  try {
+    return await prisma.post.findUnique({
+      where: {
+        id: postId,
+      },
+    })
+  } catch (err) {
+    console.log('Can not get post by id: ', err)
+  }
 }
