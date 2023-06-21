@@ -22,7 +22,7 @@ export const Modal: React.FC<props> = ({ children, isOpen, ariaLabel, className 
         onClick={() => navigate('/home')}
       ></div>
       <div className="fixed inset-0 pointer-events-none flex justify-center items-center max-h-screen overflow-scroll">
-        <div className={`${className} relative bg-gray-100 pointer-events-auto max-h-screen rounded-lg shadow dark:bg-gray-700`}>
+        <div className={`${className} relative bg-gray-100 pointer-events-auto max-h-screen rounded-lg shadow`}>
           {children}
         </div>
       </div>

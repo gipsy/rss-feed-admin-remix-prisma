@@ -33,11 +33,11 @@ model Post {
   title          String
 //  published      Boolean   @default(false)
   content        String
-  contentSnippet String
+//  contentSnippet String
   creator        String
 //  dc:creator     String
 //  categories     Array
-  isoDate        String
+//  isoDate        String
 //  pubDate        String
   link           String
   guid           String

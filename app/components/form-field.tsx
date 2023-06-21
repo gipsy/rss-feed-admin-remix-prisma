@@ -6,6 +6,7 @@ interface FormFieldProps {
   value: any
   onChange?: (...args: any) => any
   error?: string
+  placeholder?: string
 }
 
 export function FormField({
@@ -14,7 +15,8 @@ export function FormField({
   type = 'text',
   value,
   onChange = () => {},
-  error = ''
+  error = '',
+  placeholder = 'Enter your data...'
 }: FormFieldProps) {
   const [errorText, setErrorText] = useState(error)
   
@@ -35,6 +37,7 @@ export function FormField({
         id={htmlFor}
         name={htmlFor}
         className="w-full p-2 rounded-xl my-2"
+        placeholder={placeholder}
         value={value}
       />
       <div className="text-xs font-semibold text-center tracking-wide text-red-500 w-full">

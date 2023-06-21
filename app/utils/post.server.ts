@@ -1,7 +1,8 @@
-import { prisma } from "./prisma.server"
-import { Post }   from "~/utils/types.server";
-import Parser     from 'rss-parser'
-import { Prisma } from "@prisma/client/scripts/default-index";
+import { prisma }   from "./prisma.server"
+import { Post }     from "~/utils/types.server";
+import Parser       from 'rss-parser'
+import { Prisma }   from "@prisma/client/scripts/default-index";
+import { redirect } from "@remix-run/node";
 
 export const createPosts = async (userId: string, rssUrl: string) => {
   const parser = new Parser({
@@ -16,9 +17,9 @@ export const createPosts = async (userId: string, rssUrl: string) => {
         updatedAt:      item.updatedAt,
         title:          item.title,
         content:        item.content,
-        contentSnippet: item.contentSnippet,
+        //contentSnippet: item.contentSnippet,
         creator:        item.creator,
-        isoDate:        item.isoDate,
+        //isoDate:        item.isoDate,
         link:           item.link,
         guid:           item.guid
       }
@@ -32,35 +33,6 @@ export const createPosts = async (userId: string, rssUrl: string) => {
     return null
   }
 };
-
-export const createPost = async (post: Post) => {
-  try {
-    return await prisma.post.create({
-      data: post
-    })
-  } catch(err) {
-    console.log('Can not create post: ', err)
-    return null
-  }
-}
-
-export const updatePost = async (post) => {
-  try {
-    return await prisma.post.update({
-      where: {
-        id: post.id
-      },
-      data: {
-        link: post.link,
-        title: post.title,
-        content: post.content
-      }
-    })
-  } catch(err) {
-    console.log('Can not update post: ', err)
-    return null
-  }
-}
 
 export const getAllPosts = async (userId: string) => {
   try {
@@ -114,3 +86,42 @@ export const getPostById = async (postId: string) => {
     return null;
   }
 }
+
+export const createPost = async (post: Post) => {
+  try {
+    return await prisma.post.create({
+      data: post
+    })
+  } catch(err) {
+    console.log('Can not create post: ', err)
+    return null
+  }
+}
+
+export const updatePost = async (post) => {
+  try {
+    return await prisma.post.update({
+      where: {
+        id: post.id
+      },
+      data: {
+        link: post.link,
+        title: post.title,
+        content: post.content
+      }
+    })
+  } catch(err) {
+    console.log('Can not update post: ', err)
+    return null
+  }
+}
+
+export const removePost = async (postId) => {
+  await prisma.post.delete({
+    where: {
+      id: postId
+    }
+  })
+  return redirect('/home')
+}
+

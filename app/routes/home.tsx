@@ -13,6 +13,11 @@ import { Outlet, useFetcher }                from "@remix-run/react"
 import usePollingEffect                      from "~/hooks/use-polling-effect"
 import { Post }                              from "~/utils/types/post.server"
 import Parser                                from 'rss-parser'
+import pagination                            from "../styles/pagination.css"
+
+export function links() {
+  return [{ rel: "stylesheet", href: pagination }]
+}
 
 const parser = new Parser({
   headers: {
@@ -70,6 +75,7 @@ export const action: ActionFunction = async ({ request }) => {
 }
 
 export default function Home() {
+  console.log('rerender')
   const fetcher = useFetcher()
   const [rssData, setRssData] = useState({})
   const { allPosts, filteredPosts } = useLoaderData<LoaderData | undefined>()
@@ -98,9 +104,9 @@ export default function Home() {
             //updatedAt:      post.updatedAt,
             title:          post.title,
             content:        post.content,
-            contentSnippet: post.contentSnippet,
+            //contentSnippet: post.contentSnippet,
             creator:        post.creator,
-            isoDate:        post.isoDate,
+            //isoDate:        post.isoDate,
             link:           post.link,
             guid:           post.guid
           },

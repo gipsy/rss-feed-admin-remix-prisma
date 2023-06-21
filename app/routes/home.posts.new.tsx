@@ -1,45 +1,39 @@
+import { Modal }                          from "~/components/modal";
 import { LoaderFunction, ActionFunction,
-  json, redirect }                              from '@remix-run/node'
-import { useActionData, useLoaderData }         from '@remix-run/react'
-import { getPostById, updatePost }              from '~/utils/post.server'
-import { Modal }                                from "~/components/modal"
-import React, { useState, useRef }              from "react"
-import { FormField }                            from "~/components/form-field"
-import { ClientOnly }                           from "remix-utils"
-import { Editor }                               from '@tinymce/tinymce-react'
+  json, redirect }                        from "@remix-run/node";
+import { createPost }                     from "~/utils/post.server";
+import React, { useRef, useState }        from "react";
+import { useActionData, useLoaderData }   from "@remix-run/react";
+import { FormField }                      from "~/components/form-field";
+import { ClientOnly }                     from "remix-utils";
+import { Editor }                         from "@tinymce/tinymce-react";
+import { getUser }                        from "~/utils/auth.server";
 
-export const loader: LoaderFunction = async ({ request, params }) => {
-  const { postId } = params
-  
-  if (typeof postId !== 'string') {
-    return redirect('/home')
-  }
-  
-  const post = await getPostById(postId)
-  return json({ post })
+export const loader: LoaderFunction = async ({ request }) => {
+  return json(await getUser(request))
 }
 
 export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData()
-  const id = form.get('id')
-  const link = form.get('link')
   const title = form.get('title')
   const content = form.get('content')
+  const link = form.get('link')
+  const creator = form.get('creator')
   
-  return await updatePost({id, link, title, content}) && redirect('/home')
+  return await createPost({title, content, link, creator}) && redirect('/home')
 }
 
 export default function PostModal() {
+  const { profile } = useLoaderData()
   const editorRef = useRef(null)
-  const { post } = useLoaderData()
   const actionData = useActionData()
+  
   const [formError] = useState(actionData?.error || '')
   const [formData, setFormData] = useState({
-    id: post.id,
-    link: post.link || actionData?.fields?.link || '',
-    title: post.title || actionData?.fields?.title || '',
-    content: post.content || actionData?.fields?.content || '',
-    //creator: post.creator || actionData?.fields?.creator || '',
+    link: actionData?.fields?.link || '',
+    title: actionData?.fields?.title || '',
+    content: actionData?.fields?.content || '',
+    creator: actionData?.fields?.creator || '',
   })
   
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -53,28 +47,16 @@ export default function PostModal() {
   return (
     <Modal isOpen={ true } className="w-2/3 p-10">
       <div className="text-xs font-semibold text-center tracking-wide text-red-500 w-full mb-2">{ formError }</div>
-      <div className="flex flex-row">
-        <h3 className="flex-1 text-xl font-medium text-gray-900">Edit selected post</h3>
-        <form
-          style={{width: '100px'}}
-          action={`/home/posts/remove/${post.id}`}
-          method="post"
-        >
-          <button
-            type="submit"
-            className="rounded-xl bg-red-900 font-semibold text-white w-full h-12 transition duration-300 ease-in-out hover:bg-red-700 hover:-translate-y-1"
-          >
-            Delete
-          </button>
-        </form>
-      </div>
+      <h3 className="mb-4 text-xl font-medium text-gray-900 dark:text-white">Create the new post</h3>
       <form method="post" className="space-y-6">
         <input type="hidden" name="content" value={formData.content} />
+        <input type="hidden" name="creator" value={`${profile.firstName} ${profile.lastName}`} />
         <div>
           <FormField
             htmlFor="title"
             label="Title"
             onChange={ e => handleInputChange( e, 'title' ) }
+            placeholder="Please enter a title..."
             value={ formData.title }
           />
         </div>
@@ -83,7 +65,7 @@ export default function PostModal() {
             { () => (
               <Editor
                 onInit={(evt, editor) => editorRef.current = editor}
-                initialValue={post.content}
+                initialValue="Add your post content..."
                 init={{
                   height: 500,
                   menubar: false,
@@ -108,6 +90,7 @@ export default function PostModal() {
             htmlFor="link"
             label="Link"
             onChange={ e => handleInputChange( e, 'link' ) }
+            placeholder="Post URL should go here..."
             value={ formData.link }
           />
         </div>
@@ -116,10 +99,10 @@ export default function PostModal() {
             type="submit"
             className="rounded-xl bg-yellow-300 font-semibold text-blue-600 w-full h-12 transition duration-300 ease-in-out hover:bg-yellow-400 hover:-translate-y-1"
           >
-            Update
+            Create
           </button>
         </div>
       </form>
     </Modal>
-  );
+  )
 }
