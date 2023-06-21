@@ -1,7 +1,6 @@
 import { prisma }   from "./prisma.server"
 import { Post }     from "~/utils/types.server";
 import Parser       from 'rss-parser'
-import { Prisma }   from "@prisma/client/scripts/default-index";
 import { redirect } from "@remix-run/node";
 
 export const createPosts = async (userId: string, rssUrl: string) => {
@@ -16,10 +15,9 @@ export const createPosts = async (userId: string, rssUrl: string) => {
         createdAt:      item.createdAt,
         updatedAt:      item.updatedAt,
         title:          item.title,
+        published:      true,
         content:        item.content,
-        //contentSnippet: item.contentSnippet,
         creator:        item.creator,
-        //isoDate:        item.isoDate,
         link:           item.link,
         guid:           item.guid
       }
@@ -45,28 +43,29 @@ export const getAllPosts = async (userId: string) => {
 
 export const getFilteredPosts = async (
   userId: string,
-  //whereFilter: Prisma.PostWhereInput
   whereFilter
 ) => {
   try {
     return await prisma.post.findMany({
       select: {
         id: true,
+        createdAt: true,
         title: true,
+        published: true,
         creator: true,
         content: true,
-        guid: true,
-        createdAt: true,
         link: true,
-        //author: {
-        //  select: {
-        //    profile: true,
-        //  },
-        //},
+        guid: true,
       },
       where: {
+        published: true,
         ...whereFilter,
       },
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+      ],
     });
   } catch (err) {
     console.log('Can not get filtered posts: ', err)
@@ -116,12 +115,20 @@ export const updatePost = async (post) => {
   }
 }
 
-export const removePost = async (postId) => {
-  await prisma.post.delete({
-    where: {
-      id: postId
-    }
-  })
-  return redirect('/home')
+export const unPublishPost = async (postId) => {
+  try {
+    await prisma.post.update({
+      where: {
+        id: postId
+      },
+      data: {
+        published: false
+      }
+    })
+    return redirect('/home')
+  } catch (err) {
+    console.log('Can not unpublish post: ', err)
+    return null
+  }
 }
 

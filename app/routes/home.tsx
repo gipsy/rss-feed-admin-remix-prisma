@@ -96,6 +96,7 @@ export default function Home() {
       const postGuids = allPosts.map(post => post.guid)
       
       const newPost = rssData.items.filter(item => postGuids.indexOf(item.guid) == -1)
+      console.log('newPost', newPost)
       
       if (newPost.length > 0) {
         newPost.forEach(post => {

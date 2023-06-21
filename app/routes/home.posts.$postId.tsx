@@ -57,14 +57,14 @@ export default function PostModal() {
         <h3 className="flex-1 text-xl font-medium text-gray-900">Edit selected post</h3>
         <form
           style={{width: '100px'}}
-          action={`/home/posts/remove/${post.id}`}
+          action={`/home/posts/unpublish/${post.id}`}
           method="post"
         >
           <button
             type="submit"
             className="rounded-xl bg-red-900 font-semibold text-white w-full h-12 transition duration-300 ease-in-out hover:bg-red-700 hover:-translate-y-1"
           >
-            Delete
+            Unpublish
           </button>
         </form>
       </div>

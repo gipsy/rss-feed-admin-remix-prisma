@@ -48,9 +48,9 @@ export function FeedPanel({ posts }: { posts: Post[] }) {
         <div className="container mx-auto">
           <Link
             className="inline-block w-6/12 rounded-xl bg-yellow-300 font-semibold text-blue-600 px-3 py-2 transition duration-300 ease-in-out hover:bg-yellow-400 hover:-translate-y-1"
-            to={'posts/new'}
+            to={'posts/create'}
           >
-            Add new post
+            Create new post
           </Link>
         </div>
       </div>

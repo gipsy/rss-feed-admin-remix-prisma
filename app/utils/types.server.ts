@@ -15,7 +15,7 @@ export type Post = {
   createdAt?: string
   updatedAt?: string
   title: string
-  //published: boolean
+  published: boolean
   content?: string
   //contentSnippet?: string
   creator: string
