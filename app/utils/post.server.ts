@@ -32,15 +32,6 @@ export const createPosts = async (userId: string, rssUrl: string) => {
   }
 };
 
-//export const getAllPosts = async (userId: string) => {
-//  try {
-//    return await prisma.post.findMany()
-//  } catch (err) {
-//    console.log('No feeds available: ', err)
-//    return null
-//  }
-//};
-
 export const getFilteredPosts = async (
   userId: string,
   rssUrl: string,

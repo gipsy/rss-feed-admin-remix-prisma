@@ -1,12 +1,11 @@
 import { LoaderFunction, ActionFunction,
-  json, redirect }                              from '@remix-run/node'
-import { useActionData, useLoaderData }         from '@remix-run/react'
-import { getPostById, updatePost }              from '~/utils/post.server'
-import { Modal }                                from "~/components/modal"
-import React, { useState, useRef }              from "react"
-import { FormField }                            from "~/components/form-field"
-import { ClientOnly }                           from "remix-utils"
-import { Editor }                               from '@tinymce/tinymce-react'
+  json, redirect }                      from '@remix-run/node'
+import { useActionData, useLoaderData } from '@remix-run/react'
+import { getPostById, updatePost }      from '~/utils/post.server'
+import { Modal }                        from "~/components/modal"
+import React, { useState }              from "react"
+import { FormField }                    from "~/components/form-field"
+import { TinyMceEditor }                from "~/components/tiny-mce-editor";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const { postId } = params
@@ -30,7 +29,6 @@ export const action: ActionFunction = async ({ request }) => {
 }
 
 export default function PostModal() {
-  const editorRef = useRef(null)
   const { post } = useLoaderData()
   const actionData = useActionData()
   const [formError] = useState(actionData?.error || '')
@@ -79,29 +77,9 @@ export default function PostModal() {
           />
         </div>
         <div>
-          <ClientOnly fallback="">
-            { () => (
-              <Editor
-                onInit={(evt, editor) => editorRef.current = editor}
-                initialValue={post.content}
-                init={{
-                  height: 500,
-                  menubar: false,
-                  //plugins: [
-                  //  'advlist autolink lists link image charmap print preview anchor',
-                  //  'searchreplace visualblocks code fullscreen',
-                  //  'insertdatetime media table paste code help wordcount'
-                  //],
-                  //toolbar: 'undo redo | formatselect | ' +
-                  //  'bold italic backcolor | alignleft aligncenter ' +
-                  //  'alignright alignjustify | bullist numlist outdent indent | ' +
-                  //  'removeformat | help',
-                  //content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-                }}
-                onEditorChange={e => handleEditorChange(e, 'content')}
-              />
-            ) }
-          </ClientOnly>
+          <TinyMceEditor
+            onChange={e => handleEditorChange( e, 'content' )}
+          />
         </div>
         <div>
           <FormField

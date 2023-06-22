@@ -1,4 +1,4 @@
-import { cssBundleHref } from "@remix-run/css-bundle";
+import { cssBundleHref }      from "@remix-run/css-bundle";
 import type { LinksFunction } from "@remix-run/node";
 import {
   Links,
@@ -6,18 +6,29 @@ import {
   Meta,
   Outlet,
   Scripts,
-  ScrollRestoration,
+  ScrollRestoration, useLoaderData,
 } from "@remix-run/react";
-import styles from '~/styles/app.css';
+import styles                 from '~/styles/app.css';
+import { json }               from "@remix-run/node";
 
 
 export const links: LinksFunction = () => [
   ...(cssBundleHref
     ? [{ rel: "stylesheet", href: cssBundleHref }]
     : [{ rel: "stylesheet", href: styles }]),
+  
 ];
 
+export async function loader() {
+  return json({
+    ENV: {
+      TINYMCE_API_KEY: process.env.TINYMCE_API_KEY,
+    },
+  });
+}
+
 export default function App() {
+  const data = useLoaderData<typeof loader>();
   return (
     <html lang="en">
       <head>
@@ -29,6 +40,13 @@ export default function App() {
       <body>
         <Outlet />
         <ScrollRestoration />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(
+              data.ENV
+            )}`,
+          }}
+        />
         <Scripts />
         <LiveReload />
       </body>

@@ -1,13 +1,12 @@
-import { Modal }                          from "~/components/modal";
+import { Modal }                        from "~/components/modal";
 import { LoaderFunction, ActionFunction,
-  json, redirect }                        from "@remix-run/node";
-import { createPost }                     from "~/utils/post.server";
-import React, { useRef, useState }        from "react";
-import { useActionData, useLoaderData }   from "@remix-run/react";
-import { FormField }                      from "~/components/form-field";
-import { ClientOnly }                     from "remix-utils";
-import { Editor }                         from "@tinymce/tinymce-react";
-import { getUser }                        from "~/utils/auth.server";
+  json, redirect }                      from "@remix-run/node";
+import { createPost }                   from "~/utils/post.server";
+import React, { useState }              from "react";
+import { useActionData, useLoaderData } from "@remix-run/react";
+import { FormField }                    from "~/components/form-field";
+import { getUser }                      from "~/utils/auth.server";
+import { TinyMceEditor }                from "~/components/tiny-mce-editor";
 
 export const loader: LoaderFunction = async ({ request }) => {
   return json(await getUser(request))
@@ -25,7 +24,6 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function PostModal() {
   const { profile } = useLoaderData()
-  const editorRef = useRef(null)
   const actionData = useActionData()
   
   const [formError] = useState(actionData?.error || '')
@@ -61,19 +59,9 @@ export default function PostModal() {
           />
         </div>
         <div>
-          <ClientOnly fallback="">
-            { () => (
-              <Editor
-                onInit={(evt, editor) => editorRef.current = editor}
-                initialValue="Add your post content..."
-                init={{
-                  height: 500,
-                  menubar: false,
-                }}
-                onEditorChange={e => handleEditorChange(e, 'content')}
-              />
-            ) }
-          </ClientOnly>
+          <TinyMceEditor
+            onChange={e => handleEditorChange( e, 'content' )}
+          />
         </div>
         <div>
           <FormField
