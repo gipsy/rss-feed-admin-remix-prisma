@@ -3,11 +3,11 @@ import { Post }     from "~/utils/types.server";
 import Parser       from 'rss-parser'
 import { redirect } from "@remix-run/node";
 
+const parser = new Parser({
+  headers: { 'User-Agent': 'Chrome' }
+});
+
 export const createPosts = async (userId: string, rssUrl: string) => {
-  const parser = new Parser({
-    headers: { 'User-Agent': 'Chrome' }
-  });
-  
   try {
     const feed = await parser.parseURL(rssUrl)
     const posts = feed.items.map((item) => {
@@ -32,20 +32,45 @@ export const createPosts = async (userId: string, rssUrl: string) => {
   }
 };
 
-export const getAllPosts = async (userId: string) => {
-  try {
-    return await prisma.post.findMany()
-  } catch (err) {
-    console.log('No feeds available: ', err)
-    return null
-  }
-};
+//export const getAllPosts = async (userId: string) => {
+//  try {
+//    return await prisma.post.findMany()
+//  } catch (err) {
+//    console.log('No feeds available: ', err)
+//    return null
+//  }
+//};
 
 export const getFilteredPosts = async (
   userId: string,
+  rssUrl: string,
   whereFilter
 ) => {
+  if (!userId || !rssUrl) {
+    console.log('User id and rssUrl are not provided')
+    return null
+  }
   try {
+    const feed = await parser.parseURL(rssUrl)
+    const feedPosts = feed.items.map((item) => {
+      return {
+        createdAt:      item.createdAt,
+        updatedAt:      item.updatedAt,
+        title:          item.title,
+        published:      true,
+        content:        item.content,
+        creator:        item.creator,
+        link:           item.link,
+        guid:           item.guid
+      }
+    })
+    const posts = await prisma.post.findMany()
+    if (feedPosts?.length > 0 && posts?.length > 0) {
+      const postGuids = posts.map(post => post.guid)
+      const newPost = feedPosts.filter(item => postGuids.indexOf(item.guid) == -1)
+      console.log('newPost', newPost.length)
+      if (newPost.length > 0) newPost.forEach(post => createPost(post))
+    }
     return await prisma.post.findMany({
       select: {
         id: true,
@@ -128,6 +153,15 @@ export const unPublishPost = async (postId) => {
     return redirect('/home')
   } catch (err) {
     console.log('Can not unpublish post: ', err)
+    return null
+  }
+}
+
+export const getFeed = async (url) => {
+  try {
+    return await parser.parseURL(rssUrl)
+  } catch (err) {
+    console.log('Can not get feed: ', err)
     return null
   }
 }
