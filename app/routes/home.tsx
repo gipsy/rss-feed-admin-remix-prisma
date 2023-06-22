@@ -66,7 +66,6 @@ export const action: ActionFunction = async ({ request }) => {
 }
 
 export default function Home() {
-  console.log('rerender')
   const fetcher = useFetcher()
   const { filteredPosts } = useLoaderData<LoaderData | undefined>()
   
