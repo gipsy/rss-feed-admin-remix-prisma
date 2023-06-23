@@ -18,7 +18,7 @@ export function FeedPanel({ posts }: Posts) {
     const firstPageIndex = (currentPage - 1) * PageSize;
     const lastPageIndex = firstPageIndex + PageSize;
     return posts.slice(firstPageIndex, lastPageIndex);
-  }, [currentPage]);
+  }, [currentPage, posts]);
   
   return (
     <div className="w-full bg-gray-200 flex flex-col">

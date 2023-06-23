@@ -31,7 +31,6 @@ export const initPostsFromFeed = async (userId: string, rssUrl: string) => {
 };
 
 export const updatePostsFromFeed = async (rssUrl: string) => {
-  console.log('pollPost')
   const feed = await parser.parseURL(rssUrl)
   const feedPosts = feed.items.map( (item) => {
     return {
@@ -57,11 +56,11 @@ export const updatePostsFromFeed = async (rssUrl: string) => {
         return postGuids.indexOf( item.guid ) == -1
       }
     } );
-    console.log( 'newPost', newPost );
     if (newPost.length > 0){
       await newPost.forEach( post => createPost( post ) );
     }
   }
+  return null
 }
 
 export const getFilteredPosts = async (
