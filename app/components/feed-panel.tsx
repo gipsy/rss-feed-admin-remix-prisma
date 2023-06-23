@@ -5,11 +5,15 @@ import { Post }              from "~/utils/types.server";
 
 let PageSize = 15
 
-type Posts = {
+type FeedPanelProps = {
   posts: Partial<Post>[];
+  filter: string;
 };
 
-export function FeedPanel({ posts }: Posts) {
+export function FeedPanel({
+  posts,
+  filter
+}: FeedPanelProps) {
   const navigate = useNavigate()
   
   const [currentPage, setCurrentPage] = useState(1)
@@ -32,7 +36,7 @@ export function FeedPanel({ posts }: Posts) {
               <li
                 key={post.id || i}
                 className="w-full mb-3 bg-white hover:bg-sky-500 px-5 py-2 cursor-pointer"
-                onClick={() => navigate(`posts/${post.id}`)}
+                onClick={() => navigate(`posts/${post.id}${!!filter ? '?filter=' + filter : ''}`)}
               >
                 <p>Title: {post.title}</p>
                 <p>Creator: {post.creator}</p>
@@ -56,7 +60,7 @@ export function FeedPanel({ posts }: Posts) {
         <div className="container mx-auto">
           <Link
             className="inline-block w-6/12 rounded-xl bg-yellow-300 font-semibold text-blue-600 px-3 py-2 transition duration-300 ease-in-out hover:bg-yellow-400 hover:-translate-y-1"
-            to={'posts/create'}
+            to={`posts/create${!!filter ? '?filter=' + filter : ''}`}
           >
             Create new post
           </Link>

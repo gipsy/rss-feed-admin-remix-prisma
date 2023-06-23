@@ -8,7 +8,6 @@ import { Modal }                        from "~/components/modal"
 import React, { useState }              from "react"
 import { FormField }                    from "~/components/form-field"
 import { TinyMceEditor }                from "~/components/tiny-mce-editor";
-import { Post }                         from "~/utils/types.server";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const { postId } = params
@@ -28,7 +27,13 @@ export const action: ActionFunction = async ({ request }: ActionArgs) => {
   const title = form.get('title')
   const content = form.get('content')
   
-  return await updatePost({id, link, title, content}) && redirect('/home')
+  const url = new URL(request.url)
+  const filter = url.searchParams.get('filter')
+  
+  if (filter !== null) {
+    return await updatePost({id, link, title, content}) && redirect(`/home?filter=${filter}`)
+  }
+  return await updatePost({id, link, title, content}) && redirect(`/home`)
 }
 
 export default function PostModal() {

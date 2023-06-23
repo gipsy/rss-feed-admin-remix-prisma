@@ -19,7 +19,10 @@ export const action: ActionFunction = async ({ request }) => {
   const link = form.get('link')
   const creator = form.get('creator')
   
-  return await createPost({title, content, link, creator, published: true}) && redirect('/home')
+  const url = new URL(request.url)
+  const filter = url.searchParams.get('filter')
+  return await createPost({title, content, link, creator, published: true})
+    && redirect(`/home${ !!filter ? '?filter=' + filter : '' }`)
 }
 
 export default function PostModal() {

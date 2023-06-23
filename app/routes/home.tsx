@@ -7,9 +7,9 @@ import { createPost, initPostsFromFeed,
   getFilteredPosts }          from '~/utils/post.server'
 import { Layout }             from '~/components/layout'
 import { FeedPanel }          from '~/components/feed-panel'
-import { SearchBar }           from '~/components/search-bar'
-import { useEffect, useState } from "react"
-import { useLoaderData }       from "react-router"
+import { SearchBar }          from '~/components/search-bar'
+import { useEffect }          from "react"
+import { useLoaderData }      from "react-router"
 import { Outlet, useFetcher } from "@remix-run/react"
 import pagination             from "../styles/pagination.css"
 import { Post }               from "~/utils/types.server";
@@ -46,9 +46,12 @@ export const loader: LoaderFunction = async ({ request }) => {
     }
   }
   
-  const filteredPosts = await getFilteredPosts(userId, textFilter)
-  if (filteredPosts && filteredPosts.length > 0) {
-    return json(filteredPosts)
+  const data = {
+    loaderPosts: await getFilteredPosts(userId, textFilter),
+    filter
+  }
+  if (data.loaderPosts && data.loaderPosts.length > 0) {
+    return json(data)
   }
   if (filter === null) {
     return await initPostsFromFeed(userId, rssUrl)
@@ -66,7 +69,7 @@ export const action: ActionFunction = async ({ request }: ActionArgs) => {
 
 export default function Home() {
   const fetcher = useFetcher()
-  const posts = useLoaderData() as Partial<Post>[]
+  const { loaderPosts, filter } = useLoaderData() as Partial<Post>[]
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -88,7 +91,7 @@ export default function Home() {
         <SearchBar />
       </div>
       <div className="h-full flex">
-        <FeedPanel posts={posts} />
+        <FeedPanel posts={loaderPosts} filter={filter} />
       </div>
     </Layout>
   )

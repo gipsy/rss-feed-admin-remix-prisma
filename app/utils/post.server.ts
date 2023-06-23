@@ -1,6 +1,5 @@
 import { prisma }   from "./prisma.server"
 import Parser       from 'rss-parser'
-import { redirect } from "@remix-run/node";
 
 const parser = new Parser({
   headers: { 'User-Agent': 'Chrome' }
@@ -57,7 +56,9 @@ export const updatePostsFromFeed = async (rssUrl: string) => {
       }
     } );
     if (newPost.length > 0){
-      await newPost.forEach( post => createPost( post ) );
+      for (const post of newPost) {
+        await createPost(post);
+      }
     }
   }
   return null
@@ -139,7 +140,7 @@ export const updatePost = async (post) => {
 
 export const unPublishPost = async (postId: string | undefined) => {
   try {
-    await prisma.post.update({
+    return await prisma.post.update({
       where: {
         id: postId
       },
@@ -147,7 +148,6 @@ export const unPublishPost = async (postId: string | undefined) => {
         published: false
       }
     })
-    return redirect('/home')
   } catch (err) {
     console.log('Can not unpublish post: ', err)
     return null
