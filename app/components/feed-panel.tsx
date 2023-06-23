@@ -11,7 +11,7 @@ type FeedPanelProps = {
 };
 
 export function FeedPanel({
-  posts,
+  posts = [],
   filter
 }: FeedPanelProps) {
   const navigate = useNavigate()
