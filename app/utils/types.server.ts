@@ -11,18 +11,13 @@ export type LoginForm = {
 }
 
 export type Post = {
-  id?: string
-  createdAt?: string
-  updatedAt?: string
+  id: string
+  createdAt: string
+  updatedAt: string
   title: string
   published: boolean
-  content?: string
-  //contentSnippet?: string
+  content: string
   creator: string
-  //isoDate?: string
-  //pubDate: string
-  link?: string
-  guid?: string
-  //author: string
-  //authorId: string
+  link: string
+  guid: number
 }

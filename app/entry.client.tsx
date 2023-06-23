@@ -20,10 +20,11 @@ startTransition(() => {
 // if the browser supports SW (all modern browsers do it)
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", (event) => {
-    console.log('Inside the load handler:', event);
     // we will register it after the page complete the load
     navigator.serviceWorker
       .register('/serviceWorker.js')
-      .then((registration) => console.log('scope is: ', registration.scope));
+      .then((registration) =>
+        console.log('scope is: ', registration.scope)
+      );
   });
 }

@@ -1,11 +1,15 @@
-import { Post }              from '~/utils/types.server'
 import { Link, useNavigate } from '@remix-run/react'
 import Pagination            from "~/components/pagination";
 import { useMemo, useState } from "react";
+import { Post }              from "~/utils/types.server";
 
 let PageSize = 15
 
-export function FeedPanel({ posts }: { posts: Post[] }) {
+type Posts = {
+  posts: Partial<Post>[];
+};
+
+export function FeedPanel({ posts }: Posts) {
   const navigate = useNavigate()
   
   const [currentPage, setCurrentPage] = useState(1)
@@ -24,16 +28,20 @@ export function FeedPanel({ posts }: { posts: Post[] }) {
       <div className="flex-1 overflow-y-scroll py-4 flex flex-col gap-y-5">
         <div className="container mx-auto">
           <ul>
-            { currentPostsData.map(post => (
+            {currentPostsData.length > 0 ? currentPostsData.map((post,i) => (
               <li
-                key={post.id}
-                className="w-full mb-3 bg-white hover:bg-sky-500 px-5 py-2 cursor cursor:pointer"
+                key={post.id || i}
+                className="w-full mb-3 bg-white hover:bg-sky-500 px-5 py-2 cursor-pointer"
                 onClick={() => navigate(`posts/${post.id}`)}
               >
                 <p>Title: {post.title}</p>
                 <p>Creator: {post.creator}</p>
               </li>
-            )) }
+            )) : (
+              <li className="w-full mb-3 bg-white py-2 px-5 text-center">
+                No posts found with this search criteria
+              </li>
+            ) }
           </ul>
         </div>
       </div>

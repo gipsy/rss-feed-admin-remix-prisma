@@ -1,5 +1,4 @@
 import { prisma }   from "./prisma.server"
-import { Post }     from "~/utils/types.server";
 import Parser       from 'rss-parser'
 import { redirect } from "@remix-run/node";
 
@@ -7,61 +6,69 @@ const parser = new Parser({
   headers: { 'User-Agent': 'Chrome' }
 });
 
-export const createPosts = async (userId: string, rssUrl: string) => {
+export const initPostsFromFeed = async (userId: string, rssUrl: string) => {
   try {
     const feed = await parser.parseURL(rssUrl)
     const posts = feed.items.map((item) => {
       return {
-        createdAt:      item.createdAt,
-        updatedAt:      item.updatedAt,
         title:          item.title,
-        published:      true,
         content:        item.content,
         creator:        item.creator,
         link:           item.link,
-        guid:           item.guid
+        guid:           item.guid,
+        published:      true
       }
     })
-    const result = await prisma.post.createMany({
+    const results = await prisma.post.createMany({
       data: posts
     })
-    return result
+    console.log('posts initialized: ',results)
+    return posts
   } catch(err) {
     console.log('Can not create feed: ', err)
     return null
   }
 };
 
+export const updatePostsFromFeed = async (rssUrl: string) => {
+  console.log('pollPost')
+  const feed = await parser.parseURL(rssUrl)
+  const feedPosts = feed.items.map( (item) => {
+    return {
+      title: item.title,
+      content: item.content,
+      creator: item.creator,
+      link: item.link,
+      guid: item.guid,
+      published: true
+    }
+  } );
+  const posts = await prisma.post.findMany( {
+    orderBy: [
+      {
+        createdAt: 'desc',
+      },
+    ],
+  } );
+  if (feedPosts?.length > 0 && posts?.length > 0){
+    const postGuids = posts.map( post => post.guid );
+    const newPost = feedPosts.filter( item => {
+      if (item.guid !== undefined){
+        return postGuids.indexOf( item.guid ) == -1
+      }
+    } );
+    console.log( 'newPost', newPost );
+    if (newPost.length > 0){
+      await newPost.forEach( post => createPost( post ) );
+    }
+  }
+}
+
 export const getFilteredPosts = async (
   userId: string,
-  rssUrl: string,
-  whereFilter
+  whereFilter: {}
 ) => {
-  if (!userId || !rssUrl) {
-    console.log('User id and rssUrl are not provided')
-    return null
-  }
   try {
-    const feed = await parser.parseURL(rssUrl)
-    const feedPosts = feed.items.map((item) => {
-      return {
-        createdAt:      item.createdAt,
-        updatedAt:      item.updatedAt,
-        title:          item.title,
-        published:      true,
-        content:        item.content,
-        creator:        item.creator,
-        link:           item.link,
-        guid:           item.guid
-      }
-    })
-    const posts = await prisma.post.findMany()
-    if (feedPosts?.length > 0 && posts?.length > 0) {
-      const postGuids = posts.map(post => post.guid)
-      const newPost = feedPosts.filter(item => postGuids.indexOf(item.guid) == -1)
-      console.log('newPost', newPost.length)
-      if (newPost.length > 0) newPost.forEach(post => createPost(post))
-    }
     return await prisma.post.findMany({
       select: {
         id: true,
@@ -102,7 +109,7 @@ export const getPostById = async (postId: string) => {
   }
 }
 
-export const createPost = async (post: Post) => {
+export const createPost = async (post) => {
   try {
     return await prisma.post.create({
       data: post
@@ -131,7 +138,7 @@ export const updatePost = async (post) => {
   }
 }
 
-export const unPublishPost = async (postId) => {
+export const unPublishPost = async (postId: string | undefined) => {
   try {
     await prisma.post.update({
       where: {
@@ -147,13 +154,3 @@ export const unPublishPost = async (postId) => {
     return null
   }
 }
-
-export const getFeed = async (url) => {
-  try {
-    return await parser.parseURL(rssUrl)
-  } catch (err) {
-    console.log('Can not get feed: ', err)
-    return null
-  }
-}
-

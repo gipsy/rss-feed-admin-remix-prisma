@@ -45,7 +45,7 @@ export default function PostModal() {
   return (
     <Modal isOpen={ true } className="w-2/3 p-10">
       <div className="text-xs font-semibold text-center tracking-wide text-red-500 w-full mb-2">{ formError }</div>
-      <h3 className="mb-4 text-xl font-medium text-gray-900 dark:text-white">Create the new post</h3>
+      <h3 className="mb-4 text-xl font-medium text-gray-900">Create the new post</h3>
       <form method="post" className="space-y-6">
         <input type="hidden" name="content" value={formData.content} />
         <input type="hidden" name="creator" value={`${profile.firstName} ${profile.lastName}`} />

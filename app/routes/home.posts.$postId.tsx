@@ -1,11 +1,14 @@
-import { LoaderFunction, ActionFunction,
-  json, redirect }                      from '@remix-run/node'
+import {
+  LoaderFunction, ActionFunction,
+  json, redirect, ActionArgs
+}                                       from '@remix-run/node'
 import { useActionData, useLoaderData } from '@remix-run/react'
 import { getPostById, updatePost }      from '~/utils/post.server'
 import { Modal }                        from "~/components/modal"
 import React, { useState }              from "react"
 import { FormField }                    from "~/components/form-field"
 import { TinyMceEditor }                from "~/components/tiny-mce-editor";
+import { Post }                         from "~/utils/types.server";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const { postId } = params
@@ -18,7 +21,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   return json({ post })
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request }: ActionArgs) => {
   const form = await request.formData()
   const id = form.get('id')
   const link = form.get('link')
@@ -29,15 +32,13 @@ export const action: ActionFunction = async ({ request }) => {
 }
 
 export default function PostModal() {
-  const { post } = useLoaderData()
-  const actionData = useActionData()
+  const { post } = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
   const [formError] = useState(actionData?.error || '')
   const [formData, setFormData] = useState({
-    id: post.id,
     link: post.link || actionData?.fields?.link || '',
     title: post.title || actionData?.fields?.title || '',
     content: post.content || actionData?.fields?.content || '',
-    //creator: post.creator || actionData?.fields?.creator || '',
   })
   
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -67,6 +68,7 @@ export default function PostModal() {
         </form>
       </div>
       <form method="post" className="space-y-6">
+        <input type="hidden" name="id" value={post.id}/>
         <input type="hidden" name="content" value={formData.content} />
         <div>
           <FormField
@@ -79,6 +81,7 @@ export default function PostModal() {
         <div>
           <TinyMceEditor
             onChange={e => handleEditorChange( e, 'content' )}
+            initialValue={post.content}
           />
         </div>
         <div>

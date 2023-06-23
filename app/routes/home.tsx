@@ -1,27 +1,24 @@
 import {
   ActionFunction, LoaderFunction,
-  json, redirect }                           from '@remix-run/node'
-import { requireUserId }                     from "~/utils/auth.server"
-import { createPost, createPosts,
-  getFilteredPosts }                         from '~/utils/post.server'
-import { Layout }                            from '~/components/layout'
-import { FeedPanel }                         from '~/components/feed-panel'
-import { SearchBar }                         from '~/components/search-bar'
-import { useEffect }                         from "react"
-import { useLoaderData }                     from "react-router"
-import { Outlet, useFetcher }                from "@remix-run/react"
-import { Post }                              from "~/utils/types/post.server"
-import pagination                            from "../styles/pagination.css"
+  json, redirect, ActionArgs
+} from '@remix-run/node'
+import { requireUserId }      from "~/utils/auth.server"
+import { createPost, initPostsFromFeed,
+  getFilteredPosts }          from '~/utils/post.server'
+import { Layout }             from '~/components/layout'
+import { FeedPanel }          from '~/components/feed-panel'
+import { SearchBar }           from '~/components/search-bar'
+import { useEffect, useState } from "react"
+import { useLoaderData }       from "react-router"
+import { Outlet, useFetcher } from "@remix-run/react"
+import pagination             from "../styles/pagination.css"
+import { Post }               from "~/utils/types.server";
 
 export function links() {
   return [{ rel: "stylesheet", href: pagination }]
 }
 
 const rssUrl = 'https://lifehacker.com/rss'
-
-type LoaderData = {
-  posts?: Partial<Post>[];
-};
 
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await requireUserId(request)
@@ -49,33 +46,38 @@ export const loader: LoaderFunction = async ({ request }) => {
     }
   }
   
-  const data = {
-    filteredPosts: await getFilteredPosts(userId, rssUrl, textFilter)
+  const filteredPosts = await getFilteredPosts(userId, textFilter)
+  if (filteredPosts && filteredPosts.length > 0) {
+    return json(filteredPosts)
   }
-  if (data.filteredPosts.length > 0) {
-    return data.filteredPosts ? json(data) : null
+  if (filter === null) {
+    return await initPostsFromFeed(userId, rssUrl)
+  } else {
+    return []
   }
-  return await createPosts(userId, rssUrl) && redirect('/')
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request }: ActionArgs) => {
   const formData = await request.formData()
   const postData = Object.fromEntries(formData)
   
-  return await createPost(postData) && redirect('/')
+  return await createPost(postData) && redirect('/home')
 }
 
 export default function Home() {
   const fetcher = useFetcher()
-  const { filteredPosts } = useLoaderData<LoaderData | undefined>()
+  const posts = useLoaderData() as Partial<Post>[]
   
   useEffect(() => {
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {
-        fetcher.load("/home");
+        fetcher.submit(
+          { rssUrl },
+          { method: "post", action: "/home/posts/poll" }
+        );
       }
     }, 30 * 1000);
-    
+  
     return () => clearInterval(interval);
   }, []);
   
@@ -86,7 +88,7 @@ export default function Home() {
         <SearchBar />
       </div>
       <div className="h-full flex">
-        <FeedPanel posts={filteredPosts} />
+        <FeedPanel posts={posts} />
       </div>
     </Layout>
   )

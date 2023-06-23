@@ -3,7 +3,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  //previewFeatures = ["createMany"]
   binaryTargets = ["native", "debian-openssl-3.0.x", "linux-arm64-openssl-1.1.x", "rhel-openssl-1.0.x"]
 }
 
@@ -34,12 +33,7 @@ model Post {
   title          String
   published      Boolean   @default(false)
   content        String
-//  contentSnippet String
   creator        String
-//  dc:creator     String
-//  categories     Array
-//  isoDate        String
-//  pubDate        String
   link           String
   guid           String?
 //  author         User       @relation(fields: [authorId], references: [id])

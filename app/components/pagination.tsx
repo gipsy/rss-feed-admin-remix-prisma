@@ -1,16 +1,23 @@
 import { usePagination, DOTS } from '~/hooks/use-pagination'
 import classnames from 'classnames'
 
-const Pagination = props => {
-  const {
-    onPageChange,
-    totalCount,
-    siblingCount = 1,
-    currentPage,
-    pageSize,
-    className
-  } = props;
-  
+interface PaginationProps {
+  onPageChange: (...args: any) => any,
+  totalCount: number,
+  siblingCount?: number,
+  currentPage: number,
+  pageSize: number,
+  className: string
+}
+
+const Pagination = ({
+  onPageChange,
+  totalCount,
+  siblingCount = 1,
+  currentPage,
+  pageSize,
+  className
+}: PaginationProps) => {
   const paginationRange = usePagination({
     totalCount,
     pageSize,
@@ -19,7 +26,7 @@ const Pagination = props => {
   });
   
   // If there are less than 2 times in pagination range we shall not render the component
-  if (currentPage === 0 || paginationRange.length < 2) {
+  if (currentPage === 0 || paginationRange && paginationRange.length < 2) {
     return null;
   }
   
@@ -31,7 +38,7 @@ const Pagination = props => {
     onPageChange(currentPage - 1);
   };
   
-  let lastPage = paginationRange[paginationRange.length - 1];
+  let lastPage = paginationRange ? paginationRange[paginationRange.length - 1] : 0;
   return (
     <ul
       className={classnames('pagination-container', { [className]: className })}
@@ -45,7 +52,7 @@ const Pagination = props => {
       >
         <div className="arrow left" />
       </li>
-      {paginationRange.map((pageNumber,i) => {
+      {paginationRange?.map((pageNumber,i) => {
         
         // If the pageItem is a DOT, render the DOTS unicode character
         if (pageNumber === DOTS) {
